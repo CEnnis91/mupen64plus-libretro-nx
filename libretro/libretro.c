@@ -396,12 +396,22 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
+#if defined(RAPHNETRAW_USED)
+#if defined(HAVE_OPENGLES2)
+    info->library_name = "Mupen64Plus-Next GLES2 [RAW]";
+#elif defined(HAVE_OPENGLES3)
+    info->library_name = "Mupen64Plus-Next GLES3 [RAW]";
+#else
+    info->library_name = "Mupen64Plus-Next OpenGL [RAW]";
+#endif
+#else
 #if defined(HAVE_OPENGLES2)
     info->library_name = "Mupen64Plus-Next GLES2";
 #elif defined(HAVE_OPENGLES3)
     info->library_name = "Mupen64Plus-Next GLES3";
 #else
     info->library_name = "Mupen64Plus-Next OpenGL";
+#endif
 #endif
 #ifndef GIT_VERSION
 #define GIT_VERSION " git"

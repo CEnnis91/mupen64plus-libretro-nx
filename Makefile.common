@@ -214,6 +214,7 @@ ifeq ($(RAPHNETRAW_USED),1)
 		$(INPUTDIR_RAPHNET)/src/gcn64.c \
 		$(INPUTDIR_RAPHNET)/src/hexdump.c \
 		$(INPUTDIR_RAPHNET)/src/osal_dynamiclib_unix.c
+	GLFLAGS += -DRAPHNETRAW_USED
 endif
 
 	
