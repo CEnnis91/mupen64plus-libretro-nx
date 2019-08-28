@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <libretro.h>
 
 #define M64P_PLUGIN_PROTOTYPES 1
 #include "config.h"
@@ -57,6 +58,13 @@
 #include <errno.h>
 
 #define MAX_CONTROLLERS	4
+
+/* global data defintions */
+struct
+{
+    CONTROL *control;               // pointer to CONTROL struct in Core library
+    BUTTONS buttons;
+} controller[MAX_CONTROLLERS];
 
 #ifdef PORTS_1_AND_4
 static int emu2adap_portmap[MAX_CONTROLLERS] = { 0, 2, 3, 1 };
@@ -119,7 +127,7 @@ static void DebugMessage(int level, const char *message, ...)
 
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+EXPORT m64p_error CALL inputPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -187,7 +195,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+EXPORT m64p_error CALL inputPluginShutdown(void)
 {
     if (!l_PluginInit) {
 		return M64ERR_NOT_INIT;
@@ -204,7 +212,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+EXPORT m64p_error CALL inputPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -236,7 +244,7 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
               the emulator to know how to handle each controller.
   output:   none
 *******************************************************************/
-EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
+EXPORT void CALL inputInitiateControllers(CONTROL_INFO ControlInfo)
 {
     int i, n_controllers, adap_port;
 
@@ -283,12 +291,12 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
   note:     This function is only needed if the DLL is allowing raw
             data.
 *******************************************************************/
-EXPORT void CALL ReadController(int Control, unsigned char *Command)
+EXPORT void CALL inputReadController(int Control, unsigned char *Command)
 {
 	pb_readController(EMU_2_ADAP_PORT(Control), Command);
 }
 
-EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
+EXPORT void CALL inputControllerCommand(int Control, unsigned char *Command)
 {
 	pb_controllerCommand(EMU_2_ADAP_PORT(Control), Command);
 }
@@ -297,24 +305,26 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
 void SDL_PumpEvents(void);
 #endif
 
-EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
+EXPORT void CALL inputGetKeys_default( int Control, BUTTONS *Keys )
 {
 	/* Since March 23, 2018, the SDL_PumpEvents() is supposed to be called
 	   by the input plugin. Even though this plugin has nothing to do with
 	   SDL, it must now call SDL_PumpEvents. Otherwise non-input events
 	   such as SDL_QUIT (which occur when one tries to close the window)
 	   are never emitted! */
+/*
 #if PLUGIN_VERSION >= 0x010002
 	SDL_PumpEvents();
 #endif
+*/
 }
 
-EXPORT void CALL RomClosed(void)
+EXPORT void CALL inputRomClosed(void)
 {
 	pb_romClosed();
 }
 
-EXPORT int CALL RomOpen(void)
+EXPORT int CALL inputRomOpen(void)
 {
 	pb_romOpen();
 	return 1;
