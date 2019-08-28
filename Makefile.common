@@ -8,7 +8,7 @@ INPUTDIR_RAPHNET   = $(ROOT_DIR)/mupen64plus-input-raphnetraw
 HIDAPI_DIR         = $(ROOT_DIR)/hidapi
 
 DYNAREC_USED := 0
-RAPHNETRAW_USED := 0
+RAPHNETRAW_USED := 1
 
 INCFLAGS += \
 	-I$(ROOT_DIR)/custom \

@@ -422,7 +422,7 @@ endif
 LDFLAGS    += $(fpic) -O2 -lz -lpng
 
 # hidapi and mupen64plus-input-raphnetraw
-LDFLAGS    += -ludev -lrt -ldl -lhidapi-hidraw
+LDFLAGS    += -ludev -lrt -ldl -Lhidapi/linux -lhidapi-hidraw
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
