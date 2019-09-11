@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/signal11/hidapi
-	branch = master
-	commit = a6a622ffb680c55da0de787ff93b80280498330f
-	parent = 56355312fb161b58314fbcd2ca5aad968e8f5b82
+	remote = https://github.com/CEnnis91/hidapi
+	branch = smash6-pi4
+	commit = 226beb0a9afdeea4dcc7d61d26c2f9739821d941
+	parent = 071f66f2d7a20ae946fc484a4d32928a4daa45b5
 	method = merge
 	cmdver = 0.4.0
