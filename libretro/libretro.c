@@ -50,6 +50,8 @@
 
 #define ISHEXDEC ((codeLine[cursor]>='0') && (codeLine[cursor]<='9')) || ((codeLine[cursor]>='a') && (codeLine[cursor]<='f')) || ((codeLine[cursor]>='A') && (codeLine[cursor]<='F'))
 
+#define RETRO_DEVICE_RAPHNET RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
+
 struct retro_perf_callback perf_cb;
 retro_get_cpu_features_t perf_get_cpu_features_cb = NULL;
 
@@ -144,6 +146,7 @@ extern struct
 // these instead for input_plugin to read.
 int pad_pak_types[4];
 int pad_present[4] = {1, 1, 1, 1};
+int pad_raw[4] = {0, 0, 0, 0};
 
 static void n64DebugCallback(void* aContext, int aLevel, const char* aMessage)
 {
@@ -292,13 +295,14 @@ static void setup_variables(void)
     static const struct retro_controller_description port[] = {
         { "Controller", RETRO_DEVICE_JOYPAD },
         { "RetroPad", RETRO_DEVICE_JOYPAD },
+        { "Raphnet", RETRO_DEVICE_RAPHNET },
     };
 
     static const struct retro_controller_info ports[] = {
-        { port, 2 },
-        { port, 2 },
-        { port, 2 },
-        { port, 2 },
+        { port, 3 },
+        { port, 3 },
+        { port, 3 },
+        { port, 3 },
         { 0, 0 }
     };
 
@@ -897,7 +901,7 @@ void update_variables()
         else if (!strcmp(var.value, "C4"))
             u_cbutton = RETRO_DEVICE_ID_JOYPAD_X;
     }
-    
+
     var.key = CORE_NAME "-EnableOverscan";
     var.value = NULL;
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1026,7 +1030,7 @@ void retro_run (void)
 {
     libretro_swap_buffer = false;
     static bool updated = false;
-    
+
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
         update_controllers();
     }
@@ -1103,9 +1107,22 @@ void retro_set_controller_port_device(unsigned in_port, unsigned device) {
             case RETRO_DEVICE_NONE:
                 if (controller[in_port].control){
                     controller[in_port].control->Present = 0;
+                    controller[in_port].control->RawData = 0;
                     break;
                 } else {
                     pad_present[in_port] = 0;
+                    pad_raw[in_port] = 0;
+                    break;
+                }
+
+            case RETRO_DEVICE_RAPHNET:
+                if (controller[in_port].control){
+                    controller[in_port].control->Present = 1;
+                    controller[in_port].control->RawData = 1;
+                    break;
+                } else {
+                    pad_present[in_port] = 1;
+                    pad_raw[in_port] = 1;
                     break;
                 }
 
@@ -1113,9 +1130,11 @@ void retro_set_controller_port_device(unsigned in_port, unsigned device) {
             default:
                 if (controller[in_port].control){
                     controller[in_port].control->Present = 1;
+                    controller[in_port].control->RawData = 0;
                     break;
                 } else {
                     pad_present[in_port] = 1;
+                    pad_raw[in_port] = 0;
                     break;
                 }
         }
