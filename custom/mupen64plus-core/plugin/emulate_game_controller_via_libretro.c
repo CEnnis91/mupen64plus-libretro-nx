@@ -41,6 +41,7 @@ extern struct retro_rumble_interface rumble;
 extern int pad_pak_types[4];
 extern int pad_present[4];
 extern int pad_raw[4];
+extern int pad_raphnet[4];
 extern int astick_deadzone;
 extern int astick_sensitivity;
 extern int r_cbutton;
@@ -147,6 +148,8 @@ EXPORT m64p_error CALL inputPluginStartup(m64p_dynlib_handle CoreLibHandle, void
       libretro_supports_bitmasks = true;
    getKeys = inputGetKeys_default;
    inputGetKeys_default_descriptor();
+
+   raphnetPluginStartup(CoreLibHandle, Context, DebugCallback);
    return M64ERR_SUCCESS;
 }
 
@@ -154,12 +157,15 @@ EXPORT m64p_error CALL inputPluginShutdown(void)
 {
    libretro_supports_bitmasks = false;
    abort();
+
+   raphnetPluginShutdown();
    return 0;
 }
 
 EXPORT m64p_error CALL inputPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     // This function should never be called in libretro version
+    raphnetPluginGetVersion(PluginType, PluginVersion, APIVersion, PluginNamePtr, Capabilities);
     return M64ERR_SUCCESS;
 }
 
@@ -205,6 +211,12 @@ static unsigned char DataCRC( unsigned char *Data, int iLenght )
 *******************************************************************/
 EXPORT void CALL inputControllerCommand(int Control, unsigned char *Command)
 {
+    if (Control == -1 || pad_raphnet[Control] == 1)
+    {
+        raphnetControllerCommand(Control, Command);
+        return;
+    }
+
     unsigned char *Data = &Command[5];
 
     if (Control == -1)
@@ -281,6 +293,8 @@ EXPORT void CALL inputControllerCommand(int Control, unsigned char *Command)
 
 static void inputGetKeys_reuse(int16_t analogX, int16_t analogY, int Control, BUTTONS* Keys)
 {
+    printf("===== inputGetKeys_reuse (%i,%i,%i,%i)\n", Control, controller[Control].control->Present, controller[Control].control->RawData,pad_raphnet[Control]);
+
    double radius, angle;
    //  Keys->Value |= input_cb(Control, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_XX)    ? 0x4000 : 0; // Mempak switch
    //  Keys->Value |= input_cb(Control, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_XX)    ? 0x8000 : 0; // Rumblepak switch
@@ -311,6 +325,8 @@ static void inputGetKeys_reuse(int16_t analogX, int16_t analogY, int Control, BU
 
 void inputGetKeys_default( int Control, BUTTONS *Keys )
 {
+    printf("===== inputGetKeys_default (%i,%i,%i,%i)\n", Control, controller[Control].control->Present, controller[Control].control->RawData,pad_raphnet[Control]);
+
    unsigned i;
    bool cbuttons_mode = false;
    int16_t ret        = 0;
@@ -398,20 +414,22 @@ EXPORT void CALL inputInitiateControllers(CONTROL_INFO ControlInfo)
 
     for( i = 0; i < 4; i++ )
     {
-       controller[i].control = ControlInfo.Controls + i;
-       controller[i].control->Present = pad_present[i];
-       controller[i].control->RawData = pad_raw[i];
+        controller[i].control = ControlInfo.Controls + i;
+        controller[i].control->Present = pad_present[i];
+        controller[i].control->RawData = pad_raw[i];
 
-       if (pad_pak_types[i] == PLUGIN_MEMPAK)
-          controller[i].control->Plugin = PLUGIN_MEMPAK;
-       else if (pad_pak_types[i] == PLUGIN_RAW)
-          controller[i].control->Plugin = PLUGIN_RAW;
-       else
-          controller[i].control->Plugin = PLUGIN_NONE;
+        if (pad_pak_types[i] == PLUGIN_MEMPAK)
+            controller[i].control->Plugin = PLUGIN_MEMPAK;
+        else if (pad_pak_types[i] == PLUGIN_RAW)
+            controller[i].control->Plugin = PLUGIN_RAW;
+        else
+            controller[i].control->Plugin = PLUGIN_NONE;
     }
 
-   getKeys = inputGetKeys_default;
-   inputGetKeys_default_descriptor();
+    getKeys = inputGetKeys_default;
+    inputGetKeys_default_descriptor();
+
+    raphnetInitiateControllers(ControlInfo);
 }
 
 /******************************************************************
@@ -427,7 +445,15 @@ EXPORT void CALL inputInitiateControllers(CONTROL_INFO ControlInfo)
 *******************************************************************/
 EXPORT void CALL inputReadController(int Control, unsigned char *Command)
 {
-   inputControllerCommand(Control, Command);
+    printf("===== inputReadController (%i,%i,%i,%i)\n", Control, controller[Control].control->Present, controller[Control].control->RawData, pad_raphnet[Control]);
+
+    if (Control == -1 || pad_raphnet[Control] == 1)
+    {
+        raphnetReadController(Control, Command);
+        return;
+    }
+
+    inputControllerCommand(Control, Command);
 }
 
 /******************************************************************
@@ -436,7 +462,9 @@ EXPORT void CALL inputReadController(int Control, unsigned char *Command)
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL inputRomClosed(void) { }
+EXPORT void CALL inputRomClosed(void) {
+    raphnetRomClosed();
+}
 
 /******************************************************************
   Function: RomOpen
@@ -445,7 +473,10 @@ EXPORT void CALL inputRomClosed(void) { }
   input:    none
   output:   none
 *******************************************************************/
-EXPORT int CALL inputRomOpen(void) { return 1; }
+EXPORT int CALL inputRomOpen(void) {
+    raphnetRomOpen();
+    return 1;
+}
 
 
 int egcvip_is_connected(void* opaque, enum pak_type* pak)

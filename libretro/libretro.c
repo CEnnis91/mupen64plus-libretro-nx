@@ -147,6 +147,7 @@ extern struct
 int pad_pak_types[4];
 int pad_present[4] = {1, 1, 1, 1};
 int pad_raw[4] = {0, 0, 0, 0};
+int pad_raphnet[4] = {0, 0, 0, 0};
 
 static void n64DebugCallback(void* aContext, int aLevel, const char* aMessage)
 {
@@ -1108,10 +1109,12 @@ void retro_set_controller_port_device(unsigned in_port, unsigned device) {
                 if (controller[in_port].control){
                     controller[in_port].control->Present = 0;
                     controller[in_port].control->RawData = 0;
+                    pad_raphnet[in_port] = 0;
                     break;
                 } else {
                     pad_present[in_port] = 0;
                     pad_raw[in_port] = 0;
+                    pad_raphnet[in_port] = 0;
                     break;
                 }
 
@@ -1119,10 +1122,12 @@ void retro_set_controller_port_device(unsigned in_port, unsigned device) {
                 if (controller[in_port].control){
                     controller[in_port].control->Present = 1;
                     controller[in_port].control->RawData = 1;
+                    pad_raphnet[in_port] = 1;
                     break;
                 } else {
                     pad_present[in_port] = 1;
                     pad_raw[in_port] = 1;
+                    pad_raphnet[in_port] = 1;
                     break;
                 }
 
@@ -1131,10 +1136,12 @@ void retro_set_controller_port_device(unsigned in_port, unsigned device) {
                 if (controller[in_port].control){
                     controller[in_port].control->Present = 1;
                     controller[in_port].control->RawData = 0;
+                    pad_raphnet[in_port] = 0;
                     break;
                 } else {
                     pad_present[in_port] = 1;
                     pad_raw[in_port] = 0;
+                    pad_raphnet[in_port] = 0;
                     break;
                 }
         }

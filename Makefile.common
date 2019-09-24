@@ -4,6 +4,8 @@ CORE_DIR           = $(ROOT_DIR)/mupen64plus-core
 LIBRETRO_COMM_DIR  = $(ROOT_DIR)/libretro-common
 AUDIO_LIBRETRO_DIR = $(ROOT_DIR)/custom/mupen64plus-core/plugin/audio_libretro
 VIDEODIR_GLIDEN64  = $(ROOT_DIR)/GLideN64
+INPUTDIR_RAPHNET   = $(ROOT_DIR)/mupen64plus-input-raphnetraw
+HIDAPI_DIR         = $(ROOT_DIR)/hidapi
 
 DYNAREC_USED := 0
 
@@ -14,6 +16,8 @@ INCFLAGS += \
 	-I$(ROOT_DIR)/custom/GLideN64 \
 	-I$(VIDEODIR_GLIDEN64)/src \
 	-I$(VIDEODIR_GLIDEN64)/src/osal \
+	-I$(HIDAPI_DIR)/hidapi \
+	-I$(INPUTDIR_RAPHNET)/src \
 	-I$(CORE_DIR)/src \
 	-I$(CORE_DIR)/src/api \
 	-I$(AUDIO_LIBRETRO_DIR) \
@@ -100,6 +104,9 @@ SOURCES_C = \
 
 AWK_DEST_DIR    := $(CORE_DIR)/src/asm_defines
 ASM_DEFINES_OBJ := $(AWK_DEST_DIR)/asm_defines.o
+
+# hidapi
+SOURCES_C += $(HIDAPI_DIR)/linux/hid.c
 
 # MD5 lib
 SOURCES_C += \
@@ -196,7 +203,14 @@ SOURCES_C += $(LIBRETRO_DIR)/libretro.c \
 	$(ROOT_DIR)/custom/mupen64plus-core/api/vidext_libretro.c \
 	$(LIBRETRO_COMM_DIR)/glsm/glsm.c
 
-	
+# raphnetraw
+SOURCES_C += $(ROOT_DIR)/custom/mupen64plus-core/plugin/raphnetraw_plugin_front.c \
+	$(INPUTDIR_RAPHNET)/src/plugin_back.c \
+	$(INPUTDIR_RAPHNET)/src/gcn64lib.c \
+	$(INPUTDIR_RAPHNET)/src/gcn64.c \
+	$(INPUTDIR_RAPHNET)/src/hexdump.c \
+	$(INPUTDIR_RAPHNET)/src/osal_dynamiclib_unix.c
+
 SOURCES_CXX   += \
 	$(VIDEODIR_GLIDEN64)/src/Combiner.cpp                                                         \
     $(VIDEODIR_GLIDEN64)/src/CombinerKey.cpp                                                      \
@@ -367,12 +381,12 @@ ifeq ($(GLES),1)
 	GLFLAGS += -DEGL -DHAVE_OPENGLES -DHAVE_OPENGLES2 -DGLES2
 	LDFLAGS += $(EGL_LIB)
 	SOURCES_C += $(LIBRETRO_COMM_DIR)/glsym/glsym_es2.c
-	
+
 	ifeq ($(ANDROID),1)
 		SOURCES_CXX += $(VIDEODIR_GLIDEN64)/src/Graphics/OpenGLContext/GraphicBuffer/GraphicBufferWrapper.cpp \
 		               $(VIDEODIR_GLIDEN64)/src/Graphics/OpenGLContext/GraphicBuffer/PublicApi/android_hardware_buffer_compat.cpp
 	endif
-				   
+
 else ifeq ($(GLES3),1)
 	GLFLAGS += -DEGL -DHAVE_OPENGLES -DHAVE_OPENGLES3 -DGLES3
 	LDFLAGS += $(EGL_LIB)
