@@ -486,7 +486,7 @@ ifeq (,$(findstring android,$(platform)))
 endif
 
 LDFLAGS    += $(fpic) -O2 -lz -lpng
-LDFLAGS    += -ludev -lrt -ldl -Lhidapi/linux -lhidapi-hidraw
+LDFLAGS    += -ludev -lrt -ldl -Lhidapi/linux
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
