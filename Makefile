@@ -66,7 +66,7 @@ else ifeq ($(ARCH), $(filter $(ARCH), arm))
    WITH_DYNAREC = arm
 endif
 
-TARGET_NAME := mupen64plus_next
+TARGET_NAME := mupen64plus_next_raw
 CC_AS ?= $(CC)
 
 GIT_VERSION ?= " $(shell git rev-parse --short HEAD || echo unknown)"

@@ -35,7 +35,7 @@
 #include "audio_plugin.h"
 
 #ifndef CORE_NAME
-#define CORE_NAME "mupen64plus"
+#define CORE_NAME "mupen64plus-next-raw"
 #endif
 
 #ifndef PRESCALE_WIDTH
